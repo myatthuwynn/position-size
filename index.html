@@ -1,0 +1,646 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Position Size Calculator</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500;600&family=IBM+Plex+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a0a;
+    --surface: #111111;
+    --border: #1e1e1e;
+    --border-active: #2a2a2a;
+    --text: #e8e8e8;
+    --text-dim: #555;
+    --text-mid: #888;
+    --accent: #c8ff00;
+    --accent-dim: rgba(200,255,0,0.08);
+    --accent-mid: rgba(200,255,0,0.15);
+    --red: #ff4444;
+    --red-dim: rgba(255,68,68,0.08);
+    --green: #00cc88;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'IBM Plex Sans', monospace;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+  }
+
+  .container {
+    width: 100%;
+    max-width: 480px;
+  }
+
+  /* Header */
+  .header {
+    margin-bottom: 32px;
+  }
+
+  .header-label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+
+  .header h1 {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 22px;
+    font-weight: 500;
+    color: var(--text);
+    letter-spacing: -0.02em;
+  }
+
+  .header h1 span {
+    color: var(--accent);
+  }
+
+  /* Card */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 2px;
+    padding: 28px;
+    margin-bottom: 12px;
+  }
+
+  /* Capital Row */
+  .capital-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 24px;
+    padding-bottom: 24px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .capital-field {
+    flex: 1;
+  }
+
+  .field-label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 0.15em;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+
+  .input-wrap {
+    position: relative;
+    display: flex;
+    align-items: center;
+  }
+
+  .input-prefix {
+    position: absolute;
+    left: 12px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 13px;
+    color: var(--text-mid);
+    pointer-events: none;
+    z-index: 1;
+  }
+
+  input[type="number"] {
+    width: 100%;
+    background: var(--bg);
+    border: 1px solid var(--border-active);
+    border-radius: 2px;
+    color: var(--text);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 15px;
+    font-weight: 500;
+    padding: 11px 12px 11px 26px;
+    outline: none;
+    transition: border-color 0.15s, box-shadow 0.15s;
+    -moz-appearance: textfield;
+  }
+
+  input[type="number"]::-webkit-inner-spin-button,
+  input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; }
+
+  input[type="number"]:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 1px rgba(200,255,0,0.2);
+  }
+
+  /* Hide toggle */
+  .hide-btn {
+    background: none;
+    border: 1px solid var(--border-active);
+    border-radius: 2px;
+    color: var(--text-dim);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 0.1em;
+    padding: 8px 10px;
+    cursor: pointer;
+    transition: all 0.15s;
+    white-space: nowrap;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 19px;
+  }
+
+  .hide-btn:hover {
+    border-color: var(--text-mid);
+    color: var(--text-mid);
+  }
+
+  .hide-btn svg {
+    width: 12px;
+    height: 12px;
+  }
+
+  /* Risk selector */
+  .section-label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 0.15em;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    margin-bottom: 10px;
+  }
+
+  .risk-group {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 24px;
+  }
+
+  .risk-btn {
+    flex: 1;
+    background: var(--bg);
+    border: 1px solid var(--border-active);
+    border-radius: 2px;
+    color: var(--text-mid);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 13px;
+    font-weight: 500;
+    padding: 11px 8px;
+    cursor: pointer;
+    transition: all 0.15s;
+    text-align: center;
+  }
+
+  .risk-btn:hover {
+    border-color: var(--text-mid);
+    color: var(--text);
+  }
+
+  .risk-btn.active {
+    background: var(--accent-dim);
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+
+  .risk-custom-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 24px;
+  }
+
+  .risk-custom-row .input-wrap {
+    flex: 1;
+  }
+
+  .risk-custom-row input {
+    padding-right: 24px;
+  }
+
+  .input-suffix {
+    position: absolute;
+    right: 12px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 13px;
+    color: var(--text-mid);
+    pointer-events: none;
+  }
+
+  /* Price inputs */
+  .price-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 24px;
+  }
+
+  /* Direction */
+  .direction-group {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 0;
+  }
+
+  .dir-btn {
+    flex: 1;
+    background: var(--bg);
+    border: 1px solid var(--border-active);
+    border-radius: 2px;
+    color: var(--text-mid);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    padding: 10px;
+    cursor: pointer;
+    transition: all 0.15s;
+    text-align: center;
+  }
+
+  .dir-btn.long.active {
+    background: rgba(0,204,136,0.08);
+    border-color: var(--green);
+    color: var(--green);
+  }
+
+  .dir-btn.short.active {
+    background: var(--red-dim);
+    border-color: var(--red);
+    color: var(--red);
+  }
+
+  /* Calculate button */
+  .calc-btn {
+    width: 100%;
+    background: var(--accent);
+    border: none;
+    border-radius: 2px;
+    color: #000;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    padding: 14px;
+    cursor: pointer;
+    transition: all 0.15s;
+    text-transform: uppercase;
+  }
+
+  .calc-btn:hover {
+    background: #d4ff1a;
+    box-shadow: 0 0 20px rgba(200,255,0,0.2);
+  }
+
+  .calc-btn:active {
+    transform: scale(0.99);
+  }
+
+  /* Results */
+  .results {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 2px;
+    padding: 24px 28px;
+    display: none;
+    animation: fadeIn 0.2s ease;
+  }
+
+  .results.show {
+    display: block;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(4px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .result-main {
+    margin-bottom: 20px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .result-label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 0.15em;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+
+  .result-value {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 32px;
+    font-weight: 600;
+    color: var(--accent);
+    letter-spacing: -0.02em;
+    line-height: 1;
+  }
+
+  .result-unit {
+    font-size: 14px;
+    color: var(--text-mid);
+    margin-left: 4px;
+  }
+
+  .result-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+
+  .result-item {}
+
+  .result-item-value {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--text);
+    margin-top: 4px;
+  }
+
+  .result-item-value.loss {
+    color: var(--red);
+  }
+
+  .result-item-value.rr {
+    color: var(--accent);
+  }
+
+  /* Warning */
+  .warning {
+    display: none;
+    background: var(--red-dim);
+    border: 1px solid rgba(255,68,68,0.2);
+    border-radius: 2px;
+    padding: 12px 16px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    color: var(--red);
+    margin-top: 12px;
+  }
+
+  .warning.show { display: block; }
+
+  /* Footer */
+  .footer {
+    margin-top: 20px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 0.1em;
+    color: var(--text-dim);
+    text-align: center;
+  }
+
+  /* Divider label */
+  .section-divider {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 0.15em;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    margin-bottom: 10px;
+    padding-top: 4px;
+  }
+
+  .hidden-capital {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 15px;
+    color: var(--text-dim);
+    letter-spacing: 0.3em;
+    padding: 11px 12px;
+    background: var(--bg);
+    border: 1px solid var(--border-active);
+    border-radius: 2px;
+    flex: 1;
+    user-select: none;
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <div class="header">
+    <div class="header-label">Phase 2 · Live Trading</div>
+    <h1>Position <span>Size</span> Calculator</h1>
+  </div>
+
+  <div class="card">
+    <!-- Capital -->
+    <div class="capital-row">
+      <div class="capital-field">
+        <div class="field-label">Account Capital</div>
+        <div class="input-wrap" id="capitalInputWrap">
+          <span class="input-prefix">$</span>
+          <input type="number" id="capital" value="1000" min="1" step="1" placeholder="0">
+        </div>
+        <div class="hidden-capital" id="capitalHidden" style="display:none">●●●●●●</div>
+      </div>
+      <button class="hide-btn" id="hideBtn" onclick="toggleHide()">
+        <svg id="eyeIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+          <circle cx="12" cy="12" r="3"/>
+        </svg>
+        HIDE
+      </button>
+    </div>
+
+    <!-- Risk -->
+    <div class="section-label">Risk per Trade</div>
+    <div class="risk-group">
+      <button class="risk-btn active" onclick="setRisk(0.5, this)">0.5%</button>
+      <button class="risk-btn" onclick="setRisk(1, this)">1%</button>
+      <button class="risk-btn" onclick="setRisk(2, this)">2%</button>
+      <button class="risk-btn" onclick="setRisk('custom', this)" id="customBtn">—</button>
+    </div>
+
+    <div class="risk-custom-row" id="customRow" style="display:none">
+      <div class="section-label" style="margin:0;white-space:nowrap;margin-top:1px">Custom %</div>
+      <div class="input-wrap">
+        <input type="number" id="customRisk" min="0.1" max="10" step="0.1" placeholder="0.0">
+        <span class="input-suffix">%</span>
+      </div>
+    </div>
+
+    <!-- Prices -->
+    <div class="section-divider">Entry & Stop Loss</div>
+    <div class="price-grid">
+      <div>
+        <div class="field-label">Entry Price</div>
+        <div class="input-wrap">
+          <span class="input-prefix">$</span>
+          <input type="number" id="entry" min="0" step="any" placeholder="0.00">
+        </div>
+      </div>
+      <div>
+        <div class="field-label">Stop Loss Price</div>
+        <div class="input-wrap">
+          <span class="input-prefix">$</span>
+          <input type="number" id="stoploss" min="0" step="any" placeholder="0.00">
+        </div>
+      </div>
+    </div>
+
+    <!-- Direction -->
+    <div class="section-divider">Direction</div>
+    <div class="direction-group" style="margin-bottom:0">
+      <button class="dir-btn long active" id="longBtn" onclick="setDir('long')">▲ LONG</button>
+      <button class="dir-btn short" id="shortBtn" onclick="setDir('short')">▼ SHORT</button>
+    </div>
+  </div>
+
+  <button class="calc-btn" onclick="calculate()">Calculate Position Size</button>
+
+  <div class="warning" id="warning"></div>
+
+  <div class="results" id="results">
+    <div class="result-main">
+      <div class="result-label">Position Size</div>
+      <div class="result-value" id="posSize">—<span class="result-unit">units</span></div>
+    </div>
+    <div class="result-grid">
+      <div class="result-item">
+        <div class="result-label">Risk Amount</div>
+        <div class="result-item-value loss" id="riskAmt">—</div>
+      </div>
+      <div class="result-item">
+        <div class="result-label">Risk %</div>
+        <div class="result-item-value loss" id="riskPct">—</div>
+      </div>
+      <div class="result-item">
+        <div class="result-label">Stop Distance</div>
+        <div class="result-item-value" id="stopDist">—</div>
+      </div>
+      <div class="result-item">
+        <div class="result-label">Notional Value</div>
+        <div class="result-item-value" id="notional">—</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer">Structure is the only truth · 1% risk · No emotions</div>
+</div>
+
+<script>
+  let selectedRisk = 0.5;
+  let isHidden = false;
+  let direction = 'long';
+
+  function setRisk(val, btn) {
+    document.querySelectorAll('.risk-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    if (val === 'custom') {
+      document.getElementById('customRow').style.display = 'flex';
+      selectedRisk = null;
+    } else {
+      document.getElementById('customRow').style.display = 'none';
+      selectedRisk = val;
+    }
+  }
+
+  function setDir(dir) {
+    direction = dir;
+    document.getElementById('longBtn').classList.toggle('active', dir === 'long');
+    document.getElementById('shortBtn').classList.toggle('active', dir === 'short');
+  }
+
+  function toggleHide() {
+    isHidden = !isHidden;
+    const input = document.getElementById('capital');
+    const hidden = document.getElementById('capitalHidden');
+    const btn = document.getElementById('hideBtn');
+    const icon = document.getElementById('eyeIcon');
+
+    if (isHidden) {
+      input.style.display = 'none';
+      hidden.style.display = 'block';
+      btn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12"><path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg> SHOW`;
+    } else {
+      input.style.display = 'block';
+      hidden.style.display = 'none';
+      btn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg> HIDE`;
+    }
+  }
+
+  function fmt(n, decimals = 2) {
+    return n.toLocaleString('en-US', { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
+  }
+
+  function calculate() {
+    const warning = document.getElementById('warning');
+    const results = document.getElementById('results');
+    warning.className = 'warning';
+    results.className = 'results';
+
+    const capital = parseFloat(document.getElementById('capital').value);
+    const entry = parseFloat(document.getElementById('entry').value);
+    const sl = parseFloat(document.getElementById('stoploss').value);
+
+    let risk = selectedRisk;
+    if (risk === null) {
+      risk = parseFloat(document.getElementById('customRisk').value);
+    }
+
+    // Validate
+    if (!capital || capital <= 0) {
+      showWarning('Enter a valid account capital.');
+      return;
+    }
+    if (!entry || entry <= 0) {
+      showWarning('Enter a valid entry price.');
+      return;
+    }
+    if (!sl || sl <= 0) {
+      showWarning('Enter a valid stop loss price.');
+      return;
+    }
+    if (!risk || risk <= 0) {
+      showWarning('Select or enter a valid risk %.');
+      return;
+    }
+
+    // Direction check
+    if (direction === 'long' && sl >= entry) {
+      showWarning('For LONG: stop loss must be below entry price.');
+      return;
+    }
+    if (direction === 'short' && sl <= entry) {
+      showWarning('For SHORT: stop loss must be above entry price.');
+      return;
+    }
+
+    const riskAmount = (capital * risk) / 100;
+    const stopDistance = Math.abs(entry - sl);
+    const stopPct = (stopDistance / entry) * 100;
+    const positionSize = riskAmount / stopDistance;
+    const notionalValue = positionSize * entry;
+
+    // Display
+    document.getElementById('posSize').innerHTML = `${fmt(positionSize, 4)}<span class="result-unit">units</span>`;
+    document.getElementById('riskAmt').textContent = `$${fmt(riskAmount)}`;
+    document.getElementById('riskPct').textContent = `${risk}%`;
+    document.getElementById('stopDist').textContent = `$${fmt(stopDistance, 4)} (${fmt(stopPct, 2)}%)`;
+    document.getElementById('notional').textContent = `$${fmt(notionalValue)}`;
+
+    results.classList.add('show');
+  }
+
+  function showWarning(msg) {
+    const w = document.getElementById('warning');
+    w.textContent = '⚠ ' + msg;
+    w.classList.add('show');
+  }
+
+  // Enter key
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Enter') calculate();
+  });
+</script>
+</body>
+</html>
